@@ -5,6 +5,7 @@ import {UserService} from "../user/user.service";
 import {ProfileService} from "../profile/profile.service";
 import {JwtService} from "@nestjs/jwt";
 import * as bcrypt from 'bcryptjs'
+import {LoginProfileDto} from "../profile/dto/login-profile.dto";
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,7 @@ export class AuthService {
                 private profileService: ProfileService) {
     }
 
-    async login(profileDto: CreateProfileDto) {
+    async login(profileDto: LoginProfileDto) {
         const user = await this.validateProfile(profileDto)
         return await this.generateToken(user)
     }
@@ -34,7 +35,7 @@ export class AuthService {
         return {token: this.jwtService.sign(payLoad, {secret: `${process.env.PRIVATE_KEY}`, expiresIn: "10h"})};
     }
 
-    private async validateProfile(profileDto: CreateProfileDto) {
+    private async validateProfile(profileDto: LoginProfileDto) {
         const user = await this.userService.getUserByLogin(profileDto.login)
         if (!user) throw new UnauthorizedException({message: 'Invalid login'})
         const passwordEquals = await bcrypt.compare(profileDto.password, user.password)

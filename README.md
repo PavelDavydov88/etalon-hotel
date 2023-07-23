@@ -28,8 +28,9 @@
 
 ## Копирование БД
 ```
-В Postgres14 создать БД c именем dbTestHotel
-Загрузить в БД файл etalon_hotel.sql (в корне проекта)  
+В Postgres создать БД c именем dbTestHotel (использовал Postgres14)
+Загрузить в БД файл etalon_hotel.sql (в корне проекта)
+и файле .env указать корректный порт на котором установлен Pоstrgres
 ```
 
 ## Installation
@@ -49,3 +50,26 @@ $ npm run start:dev
 ```
 http://localhost:3000/api/docs
 ```
+
+## Пример использования приложения:
+```
+При регистрации клиента (post запрос), будет выдан ответ с token, 
+который необходим для брнирования и отмены бронирования номера
+http://localhost:3000/auth/registration
+
+Посмотреть список номеров у отеля с Id=1 (get запрос)
+http://localhost:3000/hotel/1
+
+Посмотреть свободные номера в отеле в определенные даты (get запрос с параметрами)
+http://localhost:3000/hotel/?idHotel=1&checkin=2023-06-18&checkout=2023-07-30
+
+Бронирование номера (post запрос, в authorization выбрать Bearer Token и 
+внести Token полученный при регистрации/логине)
+http://localhost:3000/hotel
+
+Отмена бронировния c номером брони Id=1 (delete запрос, 
+в authorization выбрать Bearer Token и внести Token полученный при регистрации/логине)
+http://localhost:3000/hotel/1
+
+```
+

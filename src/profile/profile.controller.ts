@@ -5,7 +5,9 @@ import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 import {Roles} from "../auth/role-auth.decorator";
 import {RoleGuard} from "../auth/role.guard";
 import {AddRoleDto} from "./dto/add-role.dto";
-import {ApiTags} from "@nestjs/swagger";
+import {ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger";
+import {HotelProfile} from "../hotel/hotel-user.model";
+import {Profile} from "./profile.model";
 
 @ApiTags('profile')
 @Controller('profile')
@@ -14,12 +16,8 @@ export class ProfileController {
     constructor(private profileService: ProfileService) {
     }
 
-    @UseGuards(JwtAuthGuard)
-    @Post()
-    create(@Body() profileDto: CreateProfileDto) {
-        return this.profileService.creatProfile(profileDto)
-    }
-
+    @ApiOperation({ summary: " Получить всех клиентов" })
+    @ApiResponse({ status: 200, type: Profile })
     @UseGuards(JwtAuthGuard)
     @Get()
     getAll() {
@@ -32,6 +30,7 @@ export class ProfileController {
     addRole(@Body() dto: AddRoleDto) {
         return this.profileService.addRole(dto);
     }
+
 
     @Roles("ADMIN", "USER")
     @UseGuards(RoleGuard)
