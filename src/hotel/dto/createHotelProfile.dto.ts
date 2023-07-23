@@ -1,15 +1,18 @@
+import {DateOnlyDataType} from "sequelize";
+import {ApiProperty} from "@nestjs/swagger";
 
-export class CreateProfileDto{
+export class CreateHotelProfileDto {
 
-    readonly login : string;
-    readonly password : string;
-    readonly firstName : string;
-    readonly secondName : string;
-    readonly telephone : string;
-    readonly userId : string;
+    @ApiProperty({ example: '1', description: 'Id номера' })
+    idApartment: number;
 
-    readonly vip : boolean;
+    @ApiProperty({ example: '1', description: 'Id клиента' })
+    idProfile: number;
 
+    @ApiProperty({ example: '2023-07-23', description: 'дата заезда гггг-мм-дд' })
+    checkin: DateOnlyDataType;
 
+    @ApiProperty({ example: '2023-07-30', description: 'дата выезда гггг-мм-дд' })
+    checkout: DateOnlyDataType;
 
 }

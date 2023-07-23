@@ -1,14 +1,14 @@
-import {BelongsToMany, Column, DataType, Model, Table} from "sequelize-typescript";
-import {Role} from "../roles/role.model";
-import {UserRoles} from "../roles/user-roles.model";
+import {Column, DataType, Model, Table} from "sequelize-typescript";
 
-interface UserCraetionAttrs {
-    login: string,
-    password: string,
+interface HotelAttrs {
+    name: string,
+
+    descriptionHotel: string,
+
 }
 
-@Table({tableName: 'user', createdAt: false, updatedAt: false})
-export class User extends Model<User, UserCraetionAttrs> {
+@Table({tableName: 'hotel', createdAt: false, updatedAt: false})
+export class Hotel extends Model<Hotel, HotelAttrs> {
     @Column({
         type: DataType.INTEGER,
         unique: true,
@@ -19,13 +19,10 @@ export class User extends Model<User, UserCraetionAttrs> {
     })
     id: number;
 
-    @Column({type: DataType.STRING, unique: true})
-    login: string;
+    @Column({type: DataType.STRING,})
+    name: string;
 
     @Column({type: DataType.STRING})
-    password: string;
-
-    @BelongsToMany(() => Role, () => UserRoles)
-    roles: Role[];
+    descriptionHotel: string;
 
 }

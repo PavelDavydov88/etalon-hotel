@@ -1,5 +1,5 @@
+export class AddRoleDto {
+    readonly value: string;
 
-export class AddRoleDto{
-    readonly value : string;
-    readonly login : string;
+    readonly login: string;
 }

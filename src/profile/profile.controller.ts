@@ -5,7 +5,9 @@ import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 import {Roles} from "../auth/role-auth.decorator";
 import {RoleGuard} from "../auth/role.guard";
 import {AddRoleDto} from "./dto/add-role.dto";
+import {ApiTags} from "@nestjs/swagger";
 
+@ApiTags('profile')
 @Controller('profile')
 export class ProfileController {
 

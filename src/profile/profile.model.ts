@@ -1,7 +1,7 @@
-import {BelongsTo, Column, DataType, ForeignKey, HasOne, Model, Table} from "sequelize-typescript";
+import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
 import {User} from "../user/user.model";
 
-interface ProfileCraetionAttrs {
+interface ProfileCreationAttrs {
     firstName: string;
     secondName: string;
     telephone: string;
@@ -10,7 +10,7 @@ interface ProfileCraetionAttrs {
 }
 
 @Table({tableName: 'profile', createdAt: false, updatedAt: false})
-export class Profile extends Model<Profile, ProfileCraetionAttrs> {
+export class Profile extends Model<Profile, ProfileCreationAttrs> {
 
     @Column({type: DataType.INTEGER, unique: true, autoIncrement: true, primaryKey: true})
     id: number;
@@ -32,6 +32,8 @@ export class Profile extends Model<Profile, ProfileCraetionAttrs> {
     @Column({type: DataType.INTEGER, unique: true, onDelete: 'CASCADE', onUpdate: 'CASCADE'})
     userId: number;
 
+    @Column({type: DataType.BOOLEAN,})
+    vip: boolean;
 
     @BelongsTo(() => User)
     user: User;

@@ -15,7 +15,7 @@ import {ConfigModule} from "@nestjs/config";
             envFilePath: '.env'
         }),
         forwardRef(() => UserModule),
-        ProfileModule,
+        forwardRef(() => ProfileModule),
         JwtModule.register({
             secret: process.env.PRIVATE_KEY || 'SECRET',
         }),

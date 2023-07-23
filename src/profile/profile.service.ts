@@ -19,7 +19,8 @@ export class ProfileService {
                 private roleService: RolesService,
                 private reflector: Reflector,
                 private jwtService: JwtService,
-    ) {}
+    ) {
+    }
 
     async creatProfile(dto: CreateProfileDto) {
 

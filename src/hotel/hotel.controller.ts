@@ -1,47 +1,49 @@
-import {Body, Controller, Delete, Get, Param, Post, Put, Request, UseGuards} from '@nestjs/common';
-import {ProfileService} from "./profile.service";
-import {CreateProfileDto} from "./dto/create-profile.dto";
+import {Body, Controller, Delete, Get, Param, Post, Query, Request, UseGuards} from "@nestjs/common";
+import {HotelService} from "./hotel.service";
 import {JwtAuthGuard} from "../auth/jwt-auth.guard";
+import {CreateHotelProfileDto} from "./dto/createHotelProfile.dto";
+import {CheckDateDto} from "./dto/checkDate.dto";
 import {Roles} from "../auth/role-auth.decorator";
 import {RoleGuard} from "../auth/role.guard";
-import {AddRoleDto} from "./dto/add-role.dto";
+import {ApiOperation, ApiResponse, ApiTags} from "@nestjs/swagger";
+import {Apartment} from "./apartment.model";
+import {HotelProfile} from "./hotel-user.model";
 
-@Controller('profile')
-export class ProfileController {
+@ApiTags('hotel')
+@Controller('hotel')
+export class HotelController {
 
-    constructor(private profileService: ProfileService) {
+    constructor(private hotelService: HotelService) {
     }
 
+    @ApiOperation({ summary: " Забронировать номер" })
+    @ApiResponse({ status: 200, type: HotelProfile })
     @UseGuards(JwtAuthGuard)
     @Post()
-    create(@Body() profileDto: CreateProfileDto) {
-        return this.profileService.creatProfile(profileDto)
+    create(@Body() createHotelProfileDto: CreateHotelProfileDto) {
+        return this.hotelService.creatHotelProfile(createHotelProfileDto)
     }
 
-    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: " Получить все номера по Id отеля" })
+    @ApiResponse({ status: 200, type: Apartment })
+    @Get("/:id")
+    getAll(@Param("id") id: number) {
+        return this.hotelService.getAllApartment(id);
+    }
+    @ApiOperation({ summary: " Получить все свободные номера отеля на определенный период времени" })
+    @ApiResponse({ status: 200, type: Apartment })
     @Get()
-    getAll() {
-        return this.profileService.getAllProfiles();
+    checkDate(@Query() checkDateDto: CheckDateDto) {
+        return this.hotelService.getFreeApartment(checkDateDto);
     }
 
-    @Roles("ADMIN")
-    @UseGuards(RoleGuard)
-    @Post('/role')
-    addRole(@Body() dto: AddRoleDto) {
-        return this.profileService.addRole(dto);
-    }
-
+    @ApiOperation({ summary: " Удалить бронь номера" })
+    @ApiResponse({ status: 200, description : "the booking has been deleted" })
     @Roles("ADMIN", "USER")
     @UseGuards(RoleGuard)
-    @Delete(':login')
-    remove(@Request() req: Request, @Param('login') login: string) {
-        return this.profileService.deleteByLogin(req, login);
+    @Delete("/:id")
+    remove(@Request() req: Request, @Param("id") id: number) {
+        return this.hotelService.deleteBooking(req, id);
     }
 
-    @Roles("ADMIN", "USER")
-    @UseGuards(RoleGuard)
-    @Put()
-    update(@Request() req: Request, @Body() dto: CreateProfileDto) {
-        return this.profileService.updateProfile(req, dto);
-    }
 }

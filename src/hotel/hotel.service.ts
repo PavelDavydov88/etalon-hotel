@@ -1,77 +1,89 @@
-import {HttpException, HttpStatus, Injectable, UnauthorizedException} from '@nestjs/common';
+import {Hotel} from "./hotel.model";
 import {InjectModel} from "@nestjs/sequelize";
-import {Profile} from "./profile.model";
-import {CreateProfileDto} from "./dto/create-profile.dto";
-import {UserService} from "../user/user.service";
-import {RolesService} from "../roles/roles.service";
-import {CreateUserDto} from "../user/dto/create-user.dto";
-import {AddRoleDto} from "./dto/add-role.dto";
-import {UserRoles} from "../roles/user-roles.model";
-import {Reflector} from "@nestjs/core";
+import {HotelProfile} from "./hotel-user.model";
+import {Injectable, UnauthorizedException} from "@nestjs/common";
+import sequelize, {Op} from "sequelize";
+import {CreateHotelProfileDto} from "./dto/createHotelProfile.dto";
+import {Apartment} from "./apartment.model";
+import {CheckDateDto} from "./dto/checkDate.dto";
 import {JwtService} from "@nestjs/jwt";
+import {CreateUserDto} from "../user/dto/create-user.dto";
+import {Profile} from "../profile/profile.model";
+import {UserRoles} from "../roles/user-roles.model";
 
 @Injectable()
-export class ProfileService {
+export class HotelService {
 
-    constructor(@InjectModel(Profile) private profileRepository: typeof Profile,
+    constructor(@InjectModel(Apartment) private apartmentRepository: typeof Apartment,
+                @InjectModel(HotelProfile) private hotelProfileRepository: typeof HotelProfile,
+                @InjectModel(Hotel) private hotelRepository: typeof Hotel,
+                @InjectModel(Profile) private profileRepository: typeof Profile,
                 @InjectModel(UserRoles) private userRoleRepository: typeof UserRoles,
-                private userService: UserService,
-                private roleService: RolesService,
-                private reflector: Reflector,
                 private jwtService: JwtService,
-    ) {}
-
-    async creatProfile(dto: CreateProfileDto) {
-
-        const user = await this.userService.creatUser(dto);
-        const profile = await this.profileRepository.create({...dto, userId: user.id});
-        const role = await this.roleService.getRoleByValue("USER");
-        await user.$set('roles', [role.id])
-        return profile;
+    ) {
     }
 
-    async getAllProfiles() {
-        const profiles = await this.profileRepository.findAll();
-        return profiles;
+    async creatHotelProfile(dto: CreateHotelProfileDto) {
+        const idHotel = await this.apartmentRepository.findOne({where: {id: dto.idApartment}, attributes: ["idHotel"]});
+        const arrayFreeApart = await this.getArrayFreeApart({
+            idHotel: idHotel.idHotel,
+            checkout: dto.checkout.toString(dto.checkout),
+            checkin: dto.checkin.toString(dto.checkin)
+        });
+        if (!arrayFreeApart.includes(dto.idApartment)) return "you can't book on these dates";
+        const createHotelProfile = await this.hotelProfileRepository.create(dto);
+        return createHotelProfile;
     }
 
-    async addRole(dto: AddRoleDto) {
-        const user = await this.userService.getUserByLogin(dto.login);
-        const role = await this.roleService.getRoleByValue(dto.value);
-        if (user && role) {
-            await user.$add('roles', role.id);
-            return dto;
-        }
-        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    async deleteByLogin(req: Request, login: string) {
+    async deleteBooking(req: Request, bookingId: number) {
         const authHeader = req.headers["authorization"];
         const token = authHeader.split(' ')[1];
         const userAuth = this.jwtService.verify<CreateUserDto>(token);
         const profileRepository = await this.profileRepository.findOne({where: {login: userAuth.login}})
         const roleIdUserAuth = await this.userRoleRepository.findOne({where: {userId: profileRepository.userId}})
-        if (roleIdUserAuth.roleId != 1 && userAuth.login !== login) {
-            throw new UnauthorizedException({message: 'User hasn\'t authorities'})
+        const hotelProfileRepository = await this.hotelProfileRepository.findOne({where: {id: bookingId}})
+        if (!hotelProfileRepository) {
+            throw new UnauthorizedException({message: `This booking doesn't exist`})
         }
-        await this.userService.deleteByLogin(login);
-
-        return
+        if (roleIdUserAuth.roleId != 1 && profileRepository.id !== hotelProfileRepository.idProfile) {
+            throw new UnauthorizedException({message: `User hasn\'t authorities`})
+        }
+        await this.hotelProfileRepository.destroy({where: {id: bookingId}});
+        return "the booking has been deleted"
     }
 
-    async updateProfile(req: Request, dto: CreateProfileDto) {
-        const authHeader = req.headers["authorization"];
-        const token = authHeader.split(' ')[1];
-        const userAuth = this.jwtService.verify<CreateUserDto>(token);
-        const profileRepository = await this.profileRepository.findOne({where: {login: userAuth.login}})
-        const roleIdUserAuth = await this.userRoleRepository.findOne({where: {userId: profileRepository.userId}})
-        if (roleIdUserAuth.roleId != 1 && userAuth.login !== dto.login) {
-            throw new UnauthorizedException({message: 'User hasn\'t authorities'})
-        }
-
-        const user = await this.userService.updateUser(dto);
-        await this.profileRepository.update({...dto, userId: user.id}, {where: {login: dto.login}});
-        const profile = await this.profileRepository.findOne({where: {login: dto.login}})
-        return profile;
+    async getAllApartment(id: number) {
+        return await this.apartmentRepository.findAll({
+            where: {idHotel: id}
+        })
     }
+
+    async getFreeApartment(checkDateDto: CheckDateDto) {
+        const arrayFreeIdApart = await this.getArrayFreeApart(checkDateDto)
+        return await this.apartmentRepository.findAll(
+            {where: {id: arrayFreeIdApart}}
+        )
+    }
+
+    private async getArrayFreeApart(checkDateDto: CheckDateDto) {
+        const listApart = await this.apartmentRepository.findAll({
+            where: {idHotel: checkDateDto.idHotel},
+            attributes: ["id"], raw: true
+        })
+        const arrayIdApart: number[] = listApart.map(id => id.id);
+        console.log("arrayIdApart= " + arrayIdApart)
+        const listOrderedApart = await this.hotelProfileRepository.findAll({
+            where: {
+                [Op.or]: [{checkin: {[Op.between]: [checkDateDto.checkin, checkDateDto.checkout]}}, {checkout: {[Op.between]: [checkDateDto.checkin, checkDateDto.checkout]}}]
+            },
+            attributes: [[sequelize.fn("DISTINCT", sequelize.col("idApartment")), "idApartment"]],
+            raw: true
+        })
+        const arrayOrderedIdApart: number[] = listOrderedApart.map(id => id.idApartment);
+        console.log("arrayOrderedIdApart= " + arrayOrderedIdApart)
+        const arrayFreeIdApart = arrayIdApart.filter(apart => !arrayOrderedIdApart.includes(apart))
+        console.log("arrayFreeIdApart= " + arrayFreeIdApart)
+        return arrayFreeIdApart;
+    }
+
 }

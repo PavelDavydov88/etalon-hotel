@@ -1,18 +1,22 @@
-import {Column, DataType, Model, Table} from "sequelize-typescript";
+import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
+import {Hotel} from "./hotel.model";
+import {ApiProperty} from "@nestjs/swagger";
 
-interface HotelAttrs {
-    name: string,
+interface ApartmentAttrs {
+
+    idHotel: number,
+
+    nameApartment: string,
 
     numberApartment: number,
 
     descriptionApartment: string,
 
-    free : boolean,
-
 }
 
-@Table({tableName: 'hotel', createdAt: false, updatedAt: false})
-export class Hotel extends Model<Hotel, HotelAttrs> {
+@Table({tableName: 'apartment', createdAt: false, updatedAt: false})
+export class Apartment extends Model<Apartment, ApartmentAttrs> {
+    @ApiProperty({ example: '1', description: 'Уникальный индефикатор' })
     @Column({
         type: DataType.INTEGER,
         unique: true,
@@ -23,13 +27,24 @@ export class Hotel extends Model<Hotel, HotelAttrs> {
     })
     id: number;
 
+    @ApiProperty({ example: 'Стандарт', description: 'Название номера' })
     @Column({type: DataType.STRING,})
-    name: string;
+    nameApartment: string;
 
+    @ApiProperty({ example: '101', description: 'Номер апартамента' })
     @Column({type: DataType.INTEGER})
     numberApartment: number;
 
+    @ApiProperty({ example: 'Двухместный', description: 'Описание номера' })
     @Column({type: DataType.STRING})
     descriptionApartment: string;
+
+    @ApiProperty({ example: '1', description: 'внешний ключ, ссылкается на Hotel' })
+    @ForeignKey(() => Hotel)
+    @Column({type: DataType.INTEGER})
+    idHotel: number;
+
+    @BelongsTo(() => Hotel)
+    hotel: Hotel;
 
 }

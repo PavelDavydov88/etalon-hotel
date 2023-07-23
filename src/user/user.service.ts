@@ -2,7 +2,6 @@ import {Injectable} from '@nestjs/common';
 import {User} from "./user.model";
 import {InjectModel} from '@nestjs/sequelize';
 import {CreateUserDto} from "./dto/create-user.dto";
-import {RolesService} from "../roles/roles.service";
 import {CreateProfileDto} from "../profile/dto/create-profile.dto";
 import * as bcrypt from 'bcryptjs'
 
@@ -10,7 +9,7 @@ import * as bcrypt from 'bcryptjs'
 export class UserService {
 
     constructor(@InjectModel(User) private userRepository: typeof User,
-                private roleService: RolesService) {
+    ) {
     }
 
     async creatUser(dto: CreateUserDto) {

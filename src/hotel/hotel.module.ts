@@ -1,26 +1,23 @@
-import {forwardRef, Module} from '@nestjs/common';
-import {ProfileService} from "./profile.service";
-import {ProfileController} from "./profile.controller";
 import {SequelizeModule} from "@nestjs/sequelize";
-import {Profile} from "./profile.model";
-import {UserModule} from "../user/user.module";
-import {User} from "../user/user.model";
-import {RolesModule} from "../roles/roles.module";
+import {Module} from "@nestjs/common";
+import {Hotel} from "./hotel.model";
+import {HotelProfile} from "./hotel-user.model";
+import {HotelService} from "./hotel.service";
+import {HotelController} from "./hotel.controller";
+import {Apartment} from "./apartment.model";
 import {AuthModule} from "../auth/auth.module";
+import {Profile} from "../profile/profile.model";
 import {UserRoles} from "../roles/user-roles.model";
 
 @Module({
-    providers: [ProfileService],
-    controllers: [ProfileController],
+    providers: [HotelService],
+    controllers: [HotelController],
     imports: [
-        SequelizeModule.forFeature([Profile]),
-        SequelizeModule.forFeature([User, UserRoles]),
-        forwardRef(() => UserModule),
-        RolesModule,
-        forwardRef(() => AuthModule),
+        SequelizeModule.forFeature([Hotel, HotelProfile, Apartment, Profile, UserRoles]),
+        AuthModule,
     ],
-    exports: [ProfileService]
+    exports: []
 
 })
-export class ProfileModule {
+export class HotelModule {
 }

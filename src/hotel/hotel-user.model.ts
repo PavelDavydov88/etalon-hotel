@@ -1,18 +1,23 @@
-import {Column, DataType, Model, Table} from "sequelize-typescript";
+import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
+import {DateOnlyDataType} from "sequelize";
+import {Profile} from "../profile/profile.model";
+import {Apartment} from "./apartment.model";
+import {ApiProperty} from "@nestjs/swagger";
 
-interface HotelAttrs {
-    name: string,
+interface HotelProfileAttrs {
+    idApartment: number,
 
-    numberApartment: number,
+    idProfile: number,
 
-    descriptionApartment: string,
+    checkin: DateOnlyDataType,
 
-    free : boolean,
+    checkout: DateOnlyDataType,
 
 }
 
-@Table({tableName: 'hotel', createdAt: false, updatedAt: false})
-export class User extends Model<User, HotelAttrs> {
+@Table({tableName: 'hotelProfile', createdAt: false, updatedAt: false})
+export class HotelProfile extends Model<HotelProfile, HotelProfileAttrs> {
+    @ApiProperty({ example: '1', description: 'Уникальный индефикатор' })
     @Column({
         type: DataType.INTEGER,
         unique: true,
@@ -23,13 +28,28 @@ export class User extends Model<User, HotelAttrs> {
     })
     id: number;
 
-    @Column({type: DataType.STRING, unique: true})
-    name: string;
-
+    @ApiProperty({ example: '1', description: 'внешний ключ, ссылкается на Apartment' })
+    @ForeignKey(() => Apartment)
     @Column({type: DataType.INTEGER})
-    numberApartment: number;
+    idApartment: number;
 
-    @Column({type: DataType.STRING})
-    descriptionApartment: string;
+    @BelongsTo(() => Apartment)
+    apartment: Apartment;
+
+    @ApiProperty({ example: '1', description: 'внешний ключ, ссылкается на Profile' })
+    @ForeignKey(() => Profile)
+    @Column({type: DataType.INTEGER})
+    idProfile: number;
+
+    @BelongsTo(() => Profile)
+    profile: Profile;
+
+    @ApiProperty({ example: '2023-07-23', description: 'дата заезда гггг-мм-дд' })
+    @Column({type: DataType.DATEONLY})
+    checkin: Date;
+
+    @ApiProperty({ example: '2023-07-30', description: 'дата выезда гггг-мм-дд' })
+    @Column({type: DataType.DATEONLY})
+    checkout: Date;
 
 }
